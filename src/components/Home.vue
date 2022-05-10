@@ -16,9 +16,9 @@
   </div>
 
   <div>
-    <button @click="bet >= 10 ? (bet -= 5) : bet">-</button>
+    <button @click="bet >= 2 ? (bet -= 1) : bet">-</button>
     <span class="title">Bet {{ bet }}</span>
-    <button @click="bet <= credits - 5 ? (bet += 5) : bet">+</button>
+    <button @click="bet <= credits - 1 ? (bet += 1) : bet">+</button>
     <span class="title">Credits {{ credits }}</span>
 
     <form v-on:submit.prevent="onSubmit">
@@ -38,7 +38,8 @@
     <button @click="statistics = !statistics">Statistics</button>
     <div v-if="statistics">
       <p>
-        Return To Player(RTP): <span class="number">{{ returnToPlayer }}</span>
+        Return To Player(RTP):
+        <span class="number">{{ returnToPlayer * 100 }}%</span>
       </p>
       <p>
         Total games played: <span class="number">{{ games }}</span>
@@ -62,16 +63,25 @@ export default {
   data: () => ({
     //изначально заданные ленты
     base_reels: [
-      [1, 3, 3, 3, 3, 2, 7, 4, 4, 4, 4, 7, 7, 5, 5, 5, 5, 2, 2, 0, 6, 6, 6, 6],
-      [1, 7, 5, 7, 5, 5, 5, 2, 6, 2, 6, 6, 6, 6, 3, 0, 3, 3, 3, 7, 4, 7, 4, 4],
-      [1, 3, 3, 3, 3, 7, 7, 0, 4, 4, 4, 4, 7, 7, 5, 5, 5, 5, 2, 2, 6, 6, 6, 6],
+      [
+        1, 3, 3, 3, 3, 2, 7, 4, 4, 4, 4, 7, 7, 5, 5, 5, 5, 2, 2, 0, 6, 6, 6, 6,
+        3,
+      ],
+      [
+        1, 7, 5, 7, 5, 5, 5, 2, 6, 2, 6, 6, 6, 6, 3, 0, 3, 3, 3, 7, 4, 7, 4, 4,
+        4,
+      ],
+      [
+        1, 3, 3, 3, 3, 7, 7, 0, 4, 4, 4, 4, 7, 7, 5, 5, 5, 5, 2, 2, 6, 6, 6, 6,
+        3,
+      ],
     ],
     triplets: [], //все возможные "тройки" для каждой ленты
     playedTriplets: [], //"выигравшие" тройки
     prizes: [750, 200, 60, 40, 40, 40, 40, 5], //стоимости выигрышей
     prize: 0,
     message: "",
-    bet: 5,
+    bet: 1,
     credits: 100,
     addCredits: 0,
     autoStop: false,
@@ -101,7 +111,7 @@ export default {
     },
     start() {
       this.games++;
-      this.playerBet = this.playerBet + this.bet;
+      this.playerBet += this.bet;
       this.prize = 0;
       this.message = "";
       if (this.credits >= this.bet) {
@@ -112,10 +122,10 @@ export default {
         }
         this.credits -= this.bet;
         this.isWin();
-        this.returnToPlayer = this.winningsSum / this.playerBet;
       } else {
         this.message = "CREDITS: 0 - ADD COINS";
       }
+      this.returnToPlayer = this.winningsSum / this.playerBet;
     },
     autoStart() {
       this.autoStop = false;
@@ -125,19 +135,20 @@ export default {
           clearInterval(auto);
           this.message = "CREDITS: 0 - ADD COINS";
         }
-      }, 600);
+      }, 0);
     },
     isWin() {
       if (
         this.playedTriplets[0][1] === this.playedTriplets[1][1] &&
         this.playedTriplets[1][1] === this.playedTriplets[2][1]
       ) {
+        this.prize = 0;
         let i = this.playedTriplets[0][1];
-        this.prize = (this.bet / 5) * this.prizes[i];
+        this.prize = this.bet * this.prizes[i];
         this.credits += this.prize;
         this.message = "YOU WIN!!";
         this.wins++;
-        this.winningsSum = this.winningsSum + this.prizes[i];
+        this.winningsSum += this.prize;
       }
     },
   },
